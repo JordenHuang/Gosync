@@ -1,5 +1,5 @@
 from flask import Flask, request, abort
-from backend.database import create_app
+from backend import create_app
 
 if __name__ == "__main__":
     app = create_app()

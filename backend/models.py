@@ -1,4 +1,4 @@
-from .database import db
+from . import db
 
 '''
 Table description:
@@ -8,9 +8,13 @@ Table description:
 聊天室內容 -> Chat_contene
 '''
 
-chatroom = db.Table(
+Chatroom = db.Table(
     "chatroom",
-    db.Column("user_phone", db.String(10), db.ForeignKey("users.phone")),
+    db.Column(
+        "user_phone",
+        db.String(10),
+        db.ForeignKey("users.phone")
+    ),
     db.Column(
         "event_id",
         db.Integer,
@@ -28,16 +32,15 @@ class User(db.Model):
     '''
     __tablename__ = "users"
 
-    def __init__(self, phone, name, nickname, passwd, credit_score):
+    def __init__(self, phone, name, nickname, passwd):
         self.phone = phone
         self.name = name
         self.nickname = nickname
         self.passwd = passwd
-        self.credit_score = credit_score
 
     phone = db.Column(db.String(10), primary_key=True)
     name = db.Column(db.String(20))
-    # nickname can be empty
+    # I think nickname can be empty
     nickname = db.Column(db.String(20))
     passwd = db.Column(db.String(150))
     credit_score = db.Column(db.Integer())
@@ -81,6 +84,10 @@ class Event(db.Model):
     meeting_point = db.Column(db.String(100))
     destination = db.Column(db.String(100))
     max_participants = db.Column(db.Integer)
+
+    users = db.relationship(
+        "User", secondary=Chatroom, backref="events"
+    )
 
     def to_dict(self):
         return {field.name:getattr(self, field.name) for field in self.__table__.c}
