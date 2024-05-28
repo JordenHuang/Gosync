@@ -1,4 +1,5 @@
 from . import db
+from datetime import datetime, timezone
 
 '''
 Table description:
@@ -11,7 +12,7 @@ Table description:
 Chatroom = db.Table(
     "chatroom",
     db.Column(
-        "user_phone",
+        "phone",
         db.String(10),
         db.ForeignKey("users.phone")
     ),
@@ -79,7 +80,7 @@ class Event(db.Model):
     name = db.Column(db.String(20))
     host = db.Column(db.String(20))
     type = db.Column(db.String(20))
-    time = db.Column(db.Date)
+    time = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     detail = db.Column(db.String(100))
     meeting_point = db.Column(db.String(100))
     destination = db.Column(db.String(100))
@@ -104,23 +105,24 @@ class Event(db.Model):
 class Chat_content(db.Model):
     '''
     t_id: 聊天內容id (Primary key)
-    time: 發送時間
     event_id: 事件id (Foreign key)
-    user_phone: 使用者手機(Foreign key)
+    phone: 使用者手機 (Foreign key)
     text: 內容
+    time: 發送時間
     '''
     __tablename__ = "chat_content"
 
-    def __init__(self, time, event_id, user_phone, text):
-        self.time = time
+    def __init__(self, event_id, phone, text, time):
         self.event_id = event_id
-        self.user_phone = user_phone
+        self.phone = phone
         self.text = text
+        self.time = time
 
     t_id = db.Column(db.Integer, primary_key=True)
     event_id = db.Column(db.Integer, db.ForeignKey("events.event_id"))
-    user_phone = db.Column(db.String(10), db.ForeignKey("users.phone"))
+    phone = db.Column(db.String(10), db.ForeignKey("users.phone"))
     text = db.Column(db.String(500))
+    time = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
     def to_dict(self):
         return {field.name:getattr(self, field.name) for field in self.__table__.c}
