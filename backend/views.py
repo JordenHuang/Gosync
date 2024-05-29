@@ -26,13 +26,15 @@ def main_page():
 
     if user is not None:
         events = Event.query.all()
-        reply = dict()
-        reply["length"] = len(events)
+        # reply = dict()
+        event_list = []
+        # reply["length"] = len(events)
+        # print(events, type(events), file=stdout)
         for i in range(len(events)):
-            reply[str(i)] = events[i].to_dict()
+            event_list.append(events[i].to_dict())
         # print(reply, file=stdout)
         msg["state"] = "success"
-        msg["reply"] = reply
+        msg["reply"] = event_list
         return jsonify(msg)
     else:
         msg["state"] = "failed"
@@ -41,8 +43,78 @@ def main_page():
 
 
 #
+#   Users
+#
+
+# Get user info
+@views.route('/get-user-info', methods=['POST'])
+def get_user_info():
+    data = request.get_json()
+    phone = data["phone"]
+    user = User.query.filter_by(phone=phone).first()
+    msg = dict()
+    msg["event"] = "get user info"
+
+    if user is not None:
+        user_info = user.to_dict()
+        msg["state"] = "success"
+        msg["reply"] = user_info
+    else:
+        msg["state"] = "failed"
+        msg["reply"] = "user not found"
+
+    return jsonify(msg)
+
+
+# Edit credit score
+@views.route('/edit-credit-score', methods=['POST'])
+def edit_credit_score():
+    data = request.get_json()
+    phone = data["phone"]
+    user = User.query.filter_by(phone=phone).first()
+    msg = dict()
+    msg["event"] = "edit credit score"
+
+    if user is not None:
+        try:
+            new_credit = int(data["new_credit_score"])
+        except:
+            msg["state"] = "failed"
+            msg["reply"] = "can't edit credit score"
+            return jsonify(msg)
+
+        user.credit_score = new_credit
+        db.session.commit()
+        msg["state"] = "success"
+        msg["reply"] = f"new credit score: {new_credit}"
+    else:
+        msg["state"] = "failed"
+        msg["reply"] = "user not found"
+
+    return jsonify(msg)
+
+
+#
 #   Events
 #
+
+# Get events
+@views.route('/get-event', methods=['POST'])
+def get_event():
+    data = request.get_json()
+    event_id = data["event_id"]
+    event = Event.query.filter_by(event_id=event_id).first()
+    msg = dict()
+    msg["event"] = "get event"
+
+    if event is not None:
+        msg["state"] = "success"
+        msg["reply"] = event.to_dict()
+    else:
+        msg["state"] = "failed"
+        msg["reply"] = "event not found"
+
+    return jsonify(msg)
 
 # Add events
 @views.route('/add-event', methods=['POST'])
@@ -115,7 +187,7 @@ def del_event():
 
     if (user is not None) and (event is not None):
         # Check if user already join that event
-        print(type(event.host), event.host, "==", type(phone), phone)
+        # print(type(event.host), event.host, "==", type(phone), phone)
         if str(event.host) == str(phone):
             db.session.delete(event)  ## TODO: check here
             db.session.commit()

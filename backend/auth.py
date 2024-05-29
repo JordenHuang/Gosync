@@ -4,6 +4,7 @@ from flask_login import current_user, login_user, login_required, logout_user
 # from flask import session
 from . import db
 from .models import User
+from sys import stdout
 
 auth = Blueprint("auth", __name__)
 
@@ -42,6 +43,8 @@ def signup():
 
     # check if the account not yet been registed
     if user is None:
+        if "credit_score" in data:
+            data.pop("credit_score")
         try:
             new_user = User(**data)
             new_user.credit_score = 100
